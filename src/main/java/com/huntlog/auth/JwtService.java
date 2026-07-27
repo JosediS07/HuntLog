@@ -1,4 +1,64 @@
 package com.huntlog.auth;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import javax.crypto.SecretKey;
+import java.util.Base64;
+import java.util.Date;
+
+@Service
 public class JwtService {
+
+    private final SecretKey key;
+    private final long expiration;
+
+    public JwtService(
+            @Value("${jwt.secret}") String secret,
+            @Value("${jwt.expiration}") long expiration) {
+        this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
+        this.expiration = expiration;
+    }
+
+    public String generarToken(User user) {
+        return Jwts.builder()
+                .subject(user.getId().toString())
+                .claim("email", user.getEmail())
+                .claim("rol", user.getRol())
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key)
+                .compact();
+    }
+
+    public Claims extraerClaims(String token) {
+        return Jwts.parser()
+                .verifyWith(key)
+                .build()
+                .parseSignedClaims(token)
+                .getPayload();
+    }
+
+    public Long extraerUsuarioId(String token) {
+        return Long.parseLong(extraerClaims(token).getSubject());
+    }
+
+    public String extraerEmail(String token) {
+        return extraerClaims(token).get("email", String.class);
+    }
+
+    public String extraerRol(String token) {
+        return extraerClaims(token).get("rol", String.class);
+    }
+
+    public boolean esTokenValido(String token) {
+        try {
+            return extraerClaims(token).getExpiration().after(new Date());
+        } catch (Exception e) {
+            return false;
+        }
+    }
 }
