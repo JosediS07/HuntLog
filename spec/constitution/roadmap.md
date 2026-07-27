@@ -2,7 +2,7 @@
 
 ## Completado
 
-_(Ninguno aún)_
+1. **001 Auth** — Registro, login JWT, perfil de usuario
 
 ## En progreso
 
@@ -10,7 +10,6 @@ _(Ninguno aún)_
 
 ## Pendiente
 
-1. **001 Auth** — Registro, login JWT, perfil de usuario
 2. **002 Empresas** — CRUD completo de empresas
 3. **003 Candidaturas** — CRUD + máquina de estados + historial
 4. **004 Entrevistas** — CRUD anidado a candidaturas
