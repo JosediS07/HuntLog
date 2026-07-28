@@ -5,6 +5,7 @@ import com.huntlog.auth.dto.LoginRequest;
 import com.huntlog.auth.dto.RegisterRequest;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,7 +29,7 @@ public class AuthController {
     }
 
     @GetMapping("/me")
-    public ResponseEntity<AuthResponse> obtenerPerfil(@RequestAttribute Long usuarioId) {
+    public ResponseEntity<AuthResponse> obtenerPerfil(@AuthenticationPrincipal Long usuarioId) {
         User user = authService.obtenerUsuarioPorId(usuarioId);
         return ResponseEntity.ok(new AuthResponse(user.getId(), "", user.getNombre(), user.getEmail(), user.getRol()));
     }
