@@ -17,7 +17,7 @@ jobs:
           distribution: 'temurin'
           cache: maven
       - name: Tests unitarios
-        run: ./mvnw test -B -DexcludedGroups=integration
+        run: chmod +x mvnw && ./mvnw test -B -DexcludedGroups=integration
         env:
           DB_URL: jdbc:postgresql://localhost:5432/huntlog
           DB_USER: postgres
