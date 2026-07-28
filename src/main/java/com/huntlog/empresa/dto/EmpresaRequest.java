@@ -1,7 +1,9 @@
 package com.huntlog.empresa.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record EmpresaRequest(
-        String nombre,
+        @NotBlank String nombre,
         String sitioWeb,
         String industria,
         String ubicacion,
