@@ -117,7 +117,7 @@ public class CandidaturaService {
 
     public void eliminar(Long id, Long usuarioId) {
         Candidatura candidatura = findByIdAndUsuario(id, usuarioId);
-        candidaturaRepository.delete(candidatura);
+        candidaturaRepository.deleteById(id);
     }
 
     private Candidatura findByIdAndUsuario(Long id, Long usuarioId) {

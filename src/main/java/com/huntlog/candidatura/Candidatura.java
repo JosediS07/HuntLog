@@ -1,5 +1,6 @@
 package com.huntlog.candidatura;
 
+import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import jakarta.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -80,8 +81,8 @@ public class Candidatura {
         if (nuevoEstado == EstadoCandidatura.APPLIED && this.estado == EstadoCandidatura.DRAFT) {
             this.aplicadoEn = LocalDateTime.now();
         }
-        if (nuevoEstado != EstadoCandidatura.APPLIED && nuevoEstado != EstadoCandidatura.DRAFT
-                && !nuevoEstado.esFinal() && this.aplicadoEn != null && this.respondidoEn == null) {
+        if (this.estado == EstadoCandidatura.APPLIED && this.respondidoEn == null
+                && nuevoEstado != EstadoCandidatura.REJECTED && nuevoEstado != EstadoCandidatura.WITHDRAWN) {
             this.respondidoEn = LocalDateTime.now();
         }
         this.estado = nuevoEstado;

@@ -161,7 +161,7 @@ class CandidaturaServiceTest {
 
         candidaturaService.eliminar(1L, 1L);
 
-        verify(candidaturaRepository).delete(candidatura);
+        verify(candidaturaRepository).deleteById(1L);
     }
 
     @Test
@@ -169,6 +169,6 @@ class CandidaturaServiceTest {
         when(candidaturaRepository.findById(999L)).thenReturn(Optional.empty());
 
         assertThrows(CandidaturaNoEncontradaException.class, () -> candidaturaService.eliminar(999L, 1L));
-        verify(candidaturaRepository, never()).delete(any());
+        verify(candidaturaRepository, never()).deleteById(any());
     }
 }
