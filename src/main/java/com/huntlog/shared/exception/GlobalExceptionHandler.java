@@ -1,5 +1,8 @@
 package com.huntlog.shared.exception;
 
+import com.huntlog.candidatura.exception.CandidaturaNoEncontradaException;
+import com.huntlog.candidatura.exception.TransicionInvalidaException;
+import com.huntlog.entrevista.exception.EntrevistaNoEncontradaException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -12,14 +15,14 @@ import java.util.List;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(EntidadNoEncontradaException.class)
-    public ResponseEntity<ErrorResponse> manejarNoEncontrado(EntidadNoEncontradaException ex) {
+    @ExceptionHandler({EntidadNoEncontradaException.class, CandidaturaNoEncontradaException.class, EntrevistaNoEncontradaException.class})
+    public ResponseEntity<ErrorResponse> manejarNoEncontrado(Exception ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("NOT_FOUND", ex.getMessage(), HttpStatus.NOT_FOUND.value(), LocalDateTime.now()));
     }
 
-    @ExceptionHandler(ReglaDeNegocioException.class)
-    public ResponseEntity<ErrorResponse> manejarReglaDeNegocio(ReglaDeNegocioException ex) {
+    @ExceptionHandler({ReglaDeNegocioException.class, TransicionInvalidaException.class})
+    public ResponseEntity<ErrorResponse> manejarReglaDeNegocio(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(new ErrorResponse("UNPROCESSABLE_ENTITY", ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY.value(), LocalDateTime.now()));
     }
