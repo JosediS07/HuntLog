@@ -27,6 +27,12 @@ public class GlobalExceptionHandler {
                 .body(new ErrorResponse("UNPROCESSABLE_ENTITY", ex.getMessage(), HttpStatus.UNPROCESSABLE_ENTITY.value(), LocalDateTime.now()));
     }
 
+    @ExceptionHandler(ServicioExternoNoDisponibleException.class)
+    public ResponseEntity<ErrorResponse> manejarServicioExterno(ServicioExternoNoDisponibleException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
+                .body(new ErrorResponse("BAD_GATEWAY", ex.getMessage(), HttpStatus.BAD_GATEWAY.value(), LocalDateTime.now()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ErrorResponse> manejarValidacion(MethodArgumentNotValidException ex) {
         List<String> errores = ex.getBindingResult().getFieldErrors().stream()
