@@ -57,6 +57,7 @@ class CandidaturaServiceTest {
         );
         Empresa empresa = crearEmpresa(1L, "Acme");
         when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+        when(empresaRepository.findAllById(List.of(1L))).thenReturn(List.of(empresa));
         when(candidaturaRepository.save(any(Candidatura.class))).thenAnswer(inv -> {
             Candidatura c = inv.getArgument(0);
             c.setId(1L);
@@ -131,7 +132,7 @@ class CandidaturaServiceTest {
     @Test
     void obtenerPorId_existe_devuelveCandidatura() {
         Empresa empresa = crearEmpresa(1L, "Acme");
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+        when(empresaRepository.findAllById(List.of(1L))).thenReturn(List.of(empresa));
 
         Candidatura candidatura = new Candidatura(1L, 1L, "Ingeniero", null, null, null, null, null, null);
         candidatura.setId(1L);
@@ -162,7 +163,7 @@ class CandidaturaServiceTest {
     @Test
     void actualizar_candidaturaExistente_actualizaCampos() {
         Empresa empresa = crearEmpresa(1L, "Acme");
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+        when(empresaRepository.findAllById(List.of(1L))).thenReturn(List.of(empresa));
 
         Candidatura candidatura = new Candidatura(1L, 1L, "Ingeniero", null, null, null, null, null, null);
         candidatura.setId(1L);
@@ -184,7 +185,7 @@ class CandidaturaServiceTest {
     @Test
     void cambiarEstado_transicionValida_cambiaEstadoYGuardaHistorial() {
         Empresa empresa = crearEmpresa(1L, "Acme");
-        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+        when(empresaRepository.findAllById(List.of(1L))).thenReturn(List.of(empresa));
 
         Candidatura candidatura = new Candidatura(1L, 1L, "Ingeniero", null, null, null, null, null, null);
         candidatura.setId(1L);

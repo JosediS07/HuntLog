@@ -18,6 +18,8 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -59,7 +61,10 @@ public class CandidaturaService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        return candidaturaRepository.findAll(spec, pageable).map(this::toResponse);
+        Page<Candidatura> pagina = candidaturaRepository.findAll(spec, pageable);
+        Map<Long, String> nombresEmpresas = cargarNombresEmpresas(
+                pagina.getContent().stream().map(Candidatura::getEmpresaId).toList());
+        return pagina.map(candidatura -> toResponse(candidatura, nombresEmpresas));
     }
 
     @Transactional(readOnly = true)
@@ -148,10 +153,20 @@ public class CandidaturaService {
         }
     }
 
+    private Map<Long, String> cargarNombresEmpresas(List<Long> empresaIds) {
+        if (empresaIds.isEmpty()) {
+            return Map.of();
+        }
+        return empresaRepository.findAllById(empresaIds).stream()
+                .collect(Collectors.toMap(Empresa::getId, Empresa::getNombre));
+    }
+
     private CandidaturaResponse toResponse(Candidatura c) {
-        String empresaNombre = empresaRepository.findById(c.getEmpresaId())
-                .map(Empresa::getNombre)
-                .orElse(null);
+        return toResponse(c, cargarNombresEmpresas(List.of(c.getEmpresaId())));
+    }
+
+    private CandidaturaResponse toResponse(Candidatura c, Map<Long, String> nombresEmpresas) {
+        String empresaNombre = nombresEmpresas.get(c.getEmpresaId());
         return new CandidaturaResponse(
                 c.getId(), c.getEmpresaId(), empresaNombre,
                 c.getPuesto(), c.getEstado().name(),
