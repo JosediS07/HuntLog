@@ -19,6 +19,9 @@ public class JwtService {
     public JwtService(
             @Value("${jwt.secret}") String secret,
             @Value("${jwt.expiration}") long expiration) {
+        if (secret == null || secret.isBlank()) {
+            throw new IllegalStateException("JWT_SECRET no está configurado. Defina la variable de entorno JWT_SECRET con una clave base64 de 256 bits.");
+        }
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
         this.expiration = expiration;
     }
