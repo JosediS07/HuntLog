@@ -1,10 +1,15 @@
 package com.huntlog.shared.exception;
 
+import com.huntlog.auth.exception.CredencialesInvalidasException;
+import com.huntlog.auth.exception.EmailYaRegistradoException;
 import com.huntlog.candidatura.exception.CandidaturaNoEncontradaException;
 import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import com.huntlog.entrevista.exception.EntrevistaNoEncontradaException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -31,6 +36,30 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> manejarServicioExterno(ServicioExternoNoDisponibleException ex) {
         return ResponseEntity.status(HttpStatus.BAD_GATEWAY)
                 .body(new ErrorResponse("BAD_GATEWAY", ex.getMessage(), HttpStatus.BAD_GATEWAY.value(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(EmailYaRegistradoException.class)
+    public ResponseEntity<ErrorResponse> manejarEmailYaRegistrado(EmailYaRegistradoException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("CONFLICT", ex.getMessage(), HttpStatus.CONFLICT.value(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ErrorResponse> manejarIntegridad(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(new ErrorResponse("CONFLICT", "El registro ya existe", HttpStatus.CONFLICT.value(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(DisabledException.class)
+    public ResponseEntity<ErrorResponse> manejarUsuarioDesactivado(DisabledException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ErrorResponse("FORBIDDEN", "El usuario está desactivado", HttpStatus.FORBIDDEN.value(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler({AuthenticationException.class, CredencialesInvalidasException.class})
+    public ResponseEntity<ErrorResponse> manejarAutenticacion(Exception ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("UNAUTHORIZED", "Credenciales inválidas", HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

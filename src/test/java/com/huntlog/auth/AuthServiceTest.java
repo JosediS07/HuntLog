@@ -3,12 +3,14 @@ package com.huntlog.auth;
 import com.huntlog.auth.dto.AuthResponse;
 import com.huntlog.auth.dto.LoginRequest;
 import com.huntlog.auth.dto.RegisterRequest;
+import com.huntlog.auth.exception.EmailYaRegistradoException;
 import com.huntlog.shared.exception.EntidadNoEncontradaException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -66,8 +68,19 @@ class AuthServiceTest {
         RegisterRequest request = new RegisterRequest("Juan", "juan@mail.com", "password123");
         when(userRepository.existsByEmail("juan@mail.com")).thenReturn(true);
 
-        assertThrows(IllegalArgumentException.class, () -> authService.registrar(request));
+        assertThrows(EmailYaRegistradoException.class, () -> authService.registrar(request));
         verify(userRepository, never()).save(any());
+    }
+
+    @Test
+    void registrar_violacionConstraint_lanzaEmailYaRegistrado() {
+        RegisterRequest request = new RegisterRequest("Juan", "juan@mail.com", "password123");
+
+        when(userRepository.existsByEmail("juan@mail.com")).thenReturn(false);
+        when(passwordEncoder.encode("password123")).thenReturn("encoded_password");
+        when(userRepository.save(any(User.class))).thenThrow(DataIntegrityViolationException.class);
+
+        assertThrows(EmailYaRegistradoException.class, () -> authService.registrar(request));
     }
 
     @Test

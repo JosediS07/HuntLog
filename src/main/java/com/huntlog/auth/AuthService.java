@@ -3,7 +3,10 @@ package com.huntlog.auth;
 import com.huntlog.auth.dto.AuthResponse;
 import com.huntlog.auth.dto.LoginRequest;
 import com.huntlog.auth.dto.RegisterRequest;
+import com.huntlog.auth.exception.CredencialesInvalidasException;
+import com.huntlog.auth.exception.EmailYaRegistradoException;
 import com.huntlog.shared.exception.EntidadNoEncontradaException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -29,7 +32,7 @@ public class AuthService {
     @Transactional
     public AuthResponse registrar(RegisterRequest request) {
         if (userRepository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("El email ya está registrado");
+            throw new EmailYaRegistradoException();
         }
 
         User user = new User(
@@ -38,7 +41,11 @@ public class AuthService {
                 passwordEncoder.encode(request.password()),
                 "USER"
         );
-        userRepository.save(user);
+        try {
+            userRepository.save(user);
+        } catch (DataIntegrityViolationException ex) {
+            throw new EmailYaRegistradoException();
+        }
 
         String token = jwtService.generarToken(user);
         return new AuthResponse(user.getId(), token, user.getNombre(), user.getEmail(), user.getRol());
@@ -50,7 +57,7 @@ public class AuthService {
         );
 
         User user = userRepository.findByEmail(request.email())
-                .orElseThrow(() -> new IllegalArgumentException("Credenciales inválidas"));
+                .orElseThrow(() -> new CredencialesInvalidasException("Credenciales inválidas"));
 
         String token = jwtService.generarToken(user);
         return new AuthResponse(user.getId(), token, user.getNombre(), user.getEmail(), user.getRol());
