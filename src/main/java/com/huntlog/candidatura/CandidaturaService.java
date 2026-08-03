@@ -70,6 +70,7 @@ public class CandidaturaService {
 
     public CandidaturaResponse crear(CandidaturaRequest request, Long usuarioId) {
         Empresa empresa = validarEmpresaDelUsuario(request.empresaId(), usuarioId);
+        validarRangoSalarial(request.salarioMin(), request.salarioMax());
 
         Candidatura candidatura = new Candidatura(
                 empresa.getId(), usuarioId, request.puesto(),
@@ -82,6 +83,7 @@ public class CandidaturaService {
 
     public CandidaturaResponse actualizar(Long id, CandidaturaRequest request, Long usuarioId) {
         Candidatura candidatura = findByIdAndUsuario(id, usuarioId);
+        validarRangoSalarial(request.salarioMin(), request.salarioMax());
         candidatura.setPuesto(request.puesto());
         candidatura.setUrlOferta(request.urlOferta());
         candidatura.setSalarioMin(request.salarioMin());
@@ -138,6 +140,12 @@ public class CandidaturaService {
             throw new EntidadNoEncontradaException("Empresa", empresaId);
         }
         return empresa;
+    }
+
+    private void validarRangoSalarial(BigDecimal salarioMin, BigDecimal salarioMax) {
+        if (salarioMin != null && salarioMax != null && salarioMin.compareTo(salarioMax) > 0) {
+            throw new IllegalArgumentException("El salario mínimo no puede ser mayor que el máximo");
+        }
     }
 
     private CandidaturaResponse toResponse(Candidatura c) {

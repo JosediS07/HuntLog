@@ -1,5 +1,7 @@
 package com.huntlog.candidatura.dto;
 
+import jakarta.validation.constraints.NotBlank;
+
 public record CambiarEstadoRequest(
-        String nuevoEstado
+        @NotBlank String nuevoEstado
 ) {}

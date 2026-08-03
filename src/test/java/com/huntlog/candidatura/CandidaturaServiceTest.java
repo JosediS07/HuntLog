@@ -88,6 +88,36 @@ class CandidaturaServiceTest {
     }
 
     @Test
+    void crear_salarioMinMayorQueMax_lanzaExcepcion() {
+        CandidaturaRequest request = new CandidaturaRequest(
+                1L, "Ingeniero", "url.com",
+                BigDecimal.valueOf(50000), BigDecimal.valueOf(30000),
+                "EUR", "Madrid", "notas"
+        );
+        Empresa empresa = crearEmpresa(1L, "Acme");
+        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+
+        assertThrows(IllegalArgumentException.class, () -> candidaturaService.crear(request, 1L));
+        verify(candidaturaRepository, never()).save(any());
+    }
+
+    @Test
+    void actualizar_salarioMinMayorQueMax_lanzaExcepcion() {
+        Candidatura candidatura = new Candidatura(1L, 1L, "Ingeniero", null, null, null, null, null, null);
+        candidatura.setId(1L);
+        when(candidaturaRepository.findById(1L)).thenReturn(Optional.of(candidatura));
+
+        CandidaturaRequest request = new CandidaturaRequest(
+                1L, "Ingeniero", "url.com",
+                BigDecimal.valueOf(50000), BigDecimal.valueOf(30000),
+                "EUR", "Madrid", "notas"
+        );
+
+        assertThrows(IllegalArgumentException.class, () -> candidaturaService.actualizar(1L, request, 1L));
+        verify(candidaturaRepository, never()).save(any());
+    }
+
+    @Test
     void listar_conEmpresaDeOtroUsuario_lanzaExcepcion() {
         Empresa empresa = new Empresa("Acme", "web.com", "Tech", "Madrid", null, 2L);
         empresa.setId(1L);
