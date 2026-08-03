@@ -11,6 +11,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -28,7 +29,7 @@ class AdzunaAdapterTest {
                 .baseUrl(mockWebServer.url("/").toString())
                 .build();
         adzunaAdapter = new AdzunaAdapter(webClient,
-                new AdzunaProperties("", "app-id-test", "app-key-test"));
+                new AdzunaProperties("", "app-id-test", "app-key-test", 10));
     }
 
     @AfterEach
@@ -114,5 +115,19 @@ class AdzunaAdapterTest {
         assertNull(oferta.empresa());
         assertNull(oferta.salarioMin());
         assertNull(oferta.salarioMax());
+    }
+
+    @Test
+    void buscar_timeoutExpirado_lanzaExcepcion() {
+        mockWebServer.enqueue(new MockResponse()
+                .setBodyDelay(3, TimeUnit.SECONDS)
+                .setBody("{\"results\": []}"));
+
+        AdzunaAdapter adapterLento = new AdzunaAdapter(
+                WebClient.builder().baseUrl(mockWebServer.url("/").toString()).build(),
+                new AdzunaProperties("", "app-id-test", "app-key-test", 1));
+
+        assertThrows(ServicioExternoNoDisponibleException.class,
+                () -> adapterLento.buscar("developer", "gb"));
     }
 }

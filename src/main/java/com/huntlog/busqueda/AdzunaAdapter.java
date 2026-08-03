@@ -17,7 +17,6 @@ import java.util.List;
 public class AdzunaAdapter implements BusquedaPort {
 
     private static final int RESULTADOS_POR_PAGINA = 20;
-    private static final Duration TIMEOUT = Duration.ofSeconds(10);
 
     private final WebClient webClient;
     private final AdzunaProperties adzunaProperties;
@@ -41,12 +40,17 @@ public class AdzunaAdapter implements BusquedaPort {
                             .build(pais))
                     .retrieve()
                     .bodyToMono(AdzunaResponse.class)
-                    .block(TIMEOUT);
+                    .block(Duration.ofSeconds(adzunaProperties.timeoutSeconds()));
 
+            if (respuesta == null || respuesta.results() == null) {
+                throw new ServicioExternoNoDisponibleException("El servicio de ofertas no esta disponible");
+            }
             return respuesta.results().stream()
                     .map(this::toOfertaExterna)
                     .toList();
         } catch (WebClientResponseException | WebClientRequestException ex) {
+            throw new ServicioExternoNoDisponibleException("El servicio de ofertas no esta disponible");
+        } catch (IllegalStateException ex) {
             throw new ServicioExternoNoDisponibleException("El servicio de ofertas no esta disponible");
         }
     }

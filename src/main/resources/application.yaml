@@ -27,6 +27,7 @@ adzuna:
   base-url: https://api.adzuna.com/v1/api/jobs
   app-id: ${ADZUNA_APP_ID:}
   app-key: ${ADZUNA_APP_KEY:}
+  timeout-seconds: 10
 
 springdoc:
   api-docs:

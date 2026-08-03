@@ -6,5 +6,12 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 public record AdzunaProperties(
         String baseUrl,
         String appId,
-        String appKey
-) {}
+        String appKey,
+        int timeoutSeconds
+) {
+    public AdzunaProperties {
+        if (timeoutSeconds <= 0) {
+            timeoutSeconds = 10;
+        }
+    }
+}
