@@ -7,6 +7,7 @@ import com.huntlog.candidatura.exception.CandidaturaNoEncontradaException;
 import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import com.huntlog.empresa.Empresa;
 import com.huntlog.empresa.EmpresaRepository;
+import com.huntlog.shared.exception.EntidadNoEncontradaException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -69,6 +70,32 @@ class CandidaturaServiceTest {
         assertEquals("DRAFT", result.estado());
         assertEquals(1L, result.empresaId());
         verify(candidaturaRepository).save(any(Candidatura.class));
+    }
+
+    @Test
+    void crear_empresaDeOtroUsuario_lanzaExcepcion() {
+        CandidaturaRequest request = new CandidaturaRequest(
+                1L, "Ingeniero", "url.com",
+                BigDecimal.valueOf(30000), BigDecimal.valueOf(50000),
+                "EUR", "Madrid", "notas"
+        );
+        Empresa empresa = new Empresa("Acme", "web.com", "Tech", "Madrid", null, 2L);
+        empresa.setId(1L);
+        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+
+        assertThrows(EntidadNoEncontradaException.class, () -> candidaturaService.crear(request, 1L));
+        verify(candidaturaRepository, never()).save(any());
+    }
+
+    @Test
+    void listar_conEmpresaDeOtroUsuario_lanzaExcepcion() {
+        Empresa empresa = new Empresa("Acme", "web.com", "Tech", "Madrid", null, 2L);
+        empresa.setId(1L);
+        when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
+
+        assertThrows(EntidadNoEncontradaException.class,
+                () -> candidaturaService.listar(1L, null, 1L, null, null, PageRequest.of(0, 20)));
+        verify(candidaturaRepository, never()).findAll(any(Specification.class), any(PageRequest.class));
     }
 
     @Test

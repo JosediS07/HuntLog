@@ -39,6 +39,9 @@ public class CandidaturaService {
     public Page<CandidaturaResponse> listar(Long usuarioId, String estado, Long empresaId,
                                              LocalDateTime fechaDesde, LocalDateTime fechaHasta,
                                              Pageable pageable) {
+        if (empresaId != null) {
+            validarEmpresaDelUsuario(empresaId, usuarioId);
+        }
         Specification<Candidatura> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("usuarioId"), usuarioId));
@@ -66,8 +69,7 @@ public class CandidaturaService {
     }
 
     public CandidaturaResponse crear(CandidaturaRequest request, Long usuarioId) {
-        Empresa empresa = empresaRepository.findById(request.empresaId())
-                .orElseThrow(() -> new EntidadNoEncontradaException("Empresa", request.empresaId()));
+        Empresa empresa = validarEmpresaDelUsuario(request.empresaId(), usuarioId);
 
         Candidatura candidatura = new Candidatura(
                 empresa.getId(), usuarioId, request.puesto(),
@@ -127,6 +129,15 @@ public class CandidaturaService {
             throw new CandidaturaNoEncontradaException(id);
         }
         return candidatura;
+    }
+
+    private Empresa validarEmpresaDelUsuario(Long empresaId, Long usuarioId) {
+        Empresa empresa = empresaRepository.findById(empresaId)
+                .orElseThrow(() -> new EntidadNoEncontradaException("Empresa", empresaId));
+        if (!empresa.getUsuarioId().equals(usuarioId)) {
+            throw new EntidadNoEncontradaException("Empresa", empresaId);
+        }
+        return empresa;
     }
 
     private CandidaturaResponse toResponse(Candidatura c) {
