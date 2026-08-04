@@ -22,5 +22,4 @@ jobs:
           DB_URL: jdbc:postgresql://localhost:5432/huntlog
           DB_USER: postgres
           DB_PASSWORD: postgres
-          JWT_SECRET: dW50cmFuc2FibGVzZWNyZXRrZXlmb3Jqd3QyNTZiaXRzbWluaW11bQ==
           JWT_EXPIRATION: 86400000
