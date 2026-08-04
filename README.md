@@ -34,6 +34,8 @@ docker compose up --build
 
 ### Variables de entorno
 
+> La aplicación no arranca sin `JWT_SECRET`: el servicio JWT falla al iniciar con un mensaje claro si no está definida.
+
 | Variable | Descripción | Obligatoria | Default |
 |----------|------------|:-----------:|---------|
 | `DB_URL` | URL de conexión a PostgreSQL | Sí | — |
@@ -43,6 +45,7 @@ docker compose up --build
 | `JWT_EXPIRATION` | Expiración del token en ms | No | `86400000` (24 h) |
 | `ADZUNA_APP_ID` | App ID de Adzuna API | Sí* | — |
 | `ADZUNA_APP_KEY` | App Key de Adzuna API | Sí* | — |
+| `ADZUNA_TIMEOUT_SECONDS` | Timeout de la llamada a Adzuna | No | `10` |
 
 > *Solo obligatorio para el módulo de búsqueda.
 
@@ -114,7 +117,7 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 | POST | `/login` | Iniciar sesión | Público |
 | GET | `/me` | Obtener perfil | Autenticado |
 
-### Empresas (`/api/v1/empresas`)
+### Empresas (`/api/empresas`)
 
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
@@ -124,7 +127,7 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 | PUT | `/{id}` | Actualizar empresa | Autenticado |
 | DELETE | `/{id}` | Eliminar empresa | Autenticado |
 
-### Candidaturas (`/api/v1/candidaturas`)
+### Candidaturas (`/api/candidaturas`)
 
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
@@ -137,22 +140,22 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 
 Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`
 
-### Entrevistas (`/api/v1/candidaturas/{id}/entrevistas`)
+### Entrevistas (`/api/candidaturas/{id}/entrevistas`)
 
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
 | GET | `/` | Listar entrevistas de candidatura | Autenticado |
 | POST | `/` | Crear entrevista | Autenticado |
-| PUT | `/api/v1/entrevistas/{id}` | Actualizar entrevista | Autenticado |
-| DELETE | `/api/v1/entrevistas/{id}` | Eliminar entrevista | Autenticado |
+| PUT | `/api/entrevistas/{id}` | Actualizar entrevista | Autenticado |
+| DELETE | `/api/entrevistas/{id}` | Eliminar entrevista | Autenticado |
 
-### Estadísticas (`/api/v1/stats`)
+### Estadísticas (`/api/stats`)
 
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
 | GET | `/` | Métricas del usuario | Autenticado |
 
-### Búsqueda (`/api/v1/ofertas`)
+### Búsqueda (`/api/ofertas`)
 
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
@@ -176,11 +179,8 @@ com.huntlog/
 ## Pruebas
 
 ```bash
-# Todos los tests (unit + integration)
+# Todos los tests (unitarios)
 ./mvnw test
-
-# Solo tests unitarios (sin DB)
-./mvnw test -DexcludedGroups=integration
 ```
 
 ## Despliegue
@@ -193,6 +193,8 @@ El `Dockerfile` multi-stage construye el backend en un solo contenedor:
 ## Seguridad
 
 - Contraseñas hasheadas con BCrypt
-- JWT firmado con HMAC-SHA256
+- JWT firmado con HMAC-SHA256; `JWT_SECRET` obligatorio con fail-fast al arrancar
 - Tokens con expiración configurable
-- Sin credenciales en el repositorio
+- Sin credenciales en el repositorio (ni en CI)
+- Códigos de error HTTP correctos: `401` credenciales/token inválido, `403` cuenta inactiva, `404` recurso inexistente o de otro usuario, `409` email duplicado, `422` regla de negocio, `502` fallo/timeout del servicio externo
+- Anti-IDOR: cada usuario solo ve y modifica sus propias empresas, candidaturas y entrevistas
