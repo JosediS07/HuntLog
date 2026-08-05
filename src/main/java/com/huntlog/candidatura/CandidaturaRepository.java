@@ -16,8 +16,8 @@ public interface CandidaturaRepository extends JpaRepository<Candidatura, Long>,
     @Query("SELECT c.estado, COUNT(c) FROM Candidatura c WHERE c.usuarioId = :usuarioId GROUP BY c.estado")
     List<Object[]> contarPorEstado(@Param("usuarioId") Long usuarioId);
 
-    @Query("SELECT AVG(FUNCTION('date_part', 'epoch', c.respondidoEn) - FUNCTION('date_part', 'epoch', c.aplicadoEn)) " +
-            "FROM Candidatura c WHERE c.usuarioId = :usuarioId " +
+    @Query("SELECT c.aplicadoEn, c.respondidoEn FROM Candidatura c " +
+            "WHERE c.usuarioId = :usuarioId " +
             "AND c.aplicadoEn IS NOT NULL AND c.respondidoEn IS NOT NULL")
-    Double calcularTiempoMedioRespuestaSegundos(@Param("usuarioId") Long usuarioId);
+    List<Object[]> obtenerParesAplicadoRespondido(@Param("usuarioId") Long usuarioId);
 }

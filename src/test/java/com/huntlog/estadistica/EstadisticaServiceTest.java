@@ -9,6 +9,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +42,8 @@ class EstadisticaServiceTest {
                 EstadoCandidatura.APPLIED, 2L,
                 EstadoCandidatura.REJECTED, 2L
         ));
-        when(candidaturaRepository.calcularTiempoMedioRespuestaSegundos(1L)).thenReturn(172800.0);
+        when(candidaturaRepository.obtenerParesAplicadoRespondido(1L)).thenReturn(
+                List.<Object[]>of(parAplicadoRespondido(172800)));
 
         EstadisticaResponse result = estadisticaService.obtenerEstadisticas(1L);
 
@@ -59,7 +61,7 @@ class EstadisticaServiceTest {
         when(candidaturaRepository.countByUsuarioId(1L)).thenReturn(0L);
         when(candidaturaRepository.countByUsuarioIdAndEstadoNot(1L, EstadoCandidatura.DRAFT)).thenReturn(0L);
         when(candidaturaRepository.contarPorEstado(1L)).thenReturn(List.of());
-        when(candidaturaRepository.calcularTiempoMedioRespuestaSegundos(1L)).thenReturn(null);
+        when(candidaturaRepository.obtenerParesAplicadoRespondido(1L)).thenReturn(List.of());
 
         EstadisticaResponse result = estadisticaService.obtenerEstadisticas(1L);
 
@@ -76,7 +78,7 @@ class EstadisticaServiceTest {
         when(candidaturaRepository.contarPorEstado(1L)).thenReturn(filasPorEstado(
                 EstadoCandidatura.APPLIED, 3L
         ));
-        when(candidaturaRepository.calcularTiempoMedioRespuestaSegundos(1L)).thenReturn(null);
+        when(candidaturaRepository.obtenerParesAplicadoRespondido(1L)).thenReturn(List.of());
 
         EstadisticaResponse result = estadisticaService.obtenerEstadisticas(1L);
 
@@ -92,10 +94,16 @@ class EstadisticaServiceTest {
         when(candidaturaRepository.contarPorEstado(1L)).thenReturn(filasPorEstado(
                 EstadoCandidatura.APPLIED, 2L
         ));
-        when(candidaturaRepository.calcularTiempoMedioRespuestaSegundos(1L)).thenReturn(43200.0);
+        when(candidaturaRepository.obtenerParesAplicadoRespondido(1L)).thenReturn(
+                List.<Object[]>of(parAplicadoRespondido(43200)));
 
         EstadisticaResponse result = estadisticaService.obtenerEstadisticas(1L);
 
         assertEquals(0.5, result.tiempoMedioRespuestaDias(), 0.001);
+    }
+
+    private Object[] parAplicadoRespondido(long segundos) {
+        LocalDateTime aplicado = LocalDateTime.of(2026, 1, 1, 9, 0);
+        return new Object[]{aplicado, aplicado.plusSeconds(segundos)};
     }
 }

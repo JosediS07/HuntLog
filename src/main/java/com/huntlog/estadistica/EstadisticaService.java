@@ -6,7 +6,10 @@ import com.huntlog.estadistica.dto.EstadisticaResponse;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 @Service
@@ -33,11 +36,19 @@ public class EstadisticaService {
                 ? (double) candidaturasNoBorrador / totalCandidaturas
                 : 0.0;
 
-        Double segundosMedios = candidaturaRepository.calcularTiempoMedioRespuestaSegundos(usuarioId);
-        double tiempoMedioRespuestaDias = segundosMedios != null
-                ? segundosMedios / SEGUNDOS_POR_DIA
-                : 0.0;
+        double tiempoMedioRespuestaDias = calcularTiempoMedioRespuestaDias(usuarioId);
 
         return new EstadisticaResponse(totalCandidaturas, porEstado, tasaRespuesta, tiempoMedioRespuestaDias);
+    }
+
+    private double calcularTiempoMedioRespuestaDias(Long usuarioId) {
+        List<Object[]> pares = candidaturaRepository.obtenerParesAplicadoRespondido(usuarioId);
+        if (pares.isEmpty()) {
+            return 0.0;
+        }
+        long segundosTotales = pares.stream()
+                .mapToLong(par -> Duration.between((LocalDateTime) par[0], (LocalDateTime) par[1]).getSeconds())
+                .sum();
+        return (double) segundosTotales / pares.size() / SEGUNDOS_POR_DIA;
     }
 }
