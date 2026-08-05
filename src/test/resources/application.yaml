@@ -1,0 +1,24 @@
+spring:
+  datasource:
+    url: jdbc:h2:mem:huntlog;MODE=PostgreSQL
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    defer-datasource-initialization: true
+    open-in-view: false
+  sql:
+    init:
+      mode: never
+
+jwt:
+  secret: dGVzdC1zZWNyZXQtaHVudGxvZy1pbnRlZ3JhdGlvbi10ZXN0cy0yNTZiaXRzLTAxMjM0NTY3ODk=
+  expiration: 86400000
+
+adzuna:
+  base-url: https://api.adzuna.com/v1/api/jobs
+  app-id: test
+  app-key: test
+  timeout-seconds: 10
