@@ -84,9 +84,9 @@ class HuntlogIntegracionTest {
     }
 
     @Test
-    void accesoSinTokenDevuelve403() throws Exception {
+    void accesoSinTokenDevuelve401() throws Exception {
         mockMvc.perform(get("/api/empresas"))
-                .andExpect(status().isForbidden());
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

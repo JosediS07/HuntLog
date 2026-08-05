@@ -1,9 +1,14 @@
 package com.huntlog.auth;
 
+import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.Base64;
+import java.util.Date;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -45,5 +50,39 @@ class JwtServiceTest {
         JwtService jwtService = new JwtService(SECRET, EXPIRATION);
 
         assertFalse(jwtService.esTokenValido("token_falso"));
+    }
+
+    @Test
+    void obtenerClaimsSiValido_tokenValido_devuelveClaims() {
+        JwtService jwtService = new JwtService(SECRET, EXPIRATION);
+
+        User user = new User("Juan", "juan@mail.com", "pass", "USER");
+        user.setId(1L);
+
+        String token = jwtService.generarToken(user);
+
+        assertEquals("1", jwtService.obtenerClaimsSiValido(token).getSubject());
+    }
+
+    @Test
+    void obtenerClaimsSiValido_tokenInvalido_devuelveNull() {
+        JwtService jwtService = new JwtService(SECRET, EXPIRATION);
+
+        assertNull(jwtService.obtenerClaimsSiValido("token_falso"));
+    }
+
+    @Test
+    void obtenerClaimsSiValido_tokenSinSubject_devuelveClaimsSinSubject() {
+        JwtService jwtService = new JwtService(SECRET, EXPIRATION);
+
+        String token = Jwts.builder()
+                .claim("email", "juan@mail.com")
+                .issuedAt(new Date())
+                .expiration(new Date(System.currentTimeMillis() + EXPIRATION))
+                .signWith(Keys.hmacShaKeyFor(Base64.getDecoder().decode(SECRET)))
+                .compact();
+
+        assertNotNull(jwtService.obtenerClaimsSiValido(token));
+        assertNull(jwtService.obtenerClaimsSiValido(token).getSubject());
     }
 }

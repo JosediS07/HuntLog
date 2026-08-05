@@ -1,5 +1,6 @@
 package com.huntlog.auth;
 
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -31,17 +32,24 @@ public class JwtFilter extends OncePerRequestFilter {
 
         if (header != null && header.startsWith("Bearer ")) {
             String token = header.substring(7);
+            Claims claims = jwtService.obtenerClaimsSiValido(token);
 
-            if (jwtService.esTokenValido(token)) {
-                Long usuarioId = jwtService.extraerUsuarioId(token);
-                String email = jwtService.extraerEmail(token);
-                String rol = jwtService.extraerRol(token);
+            if (claims != null && claims.getSubject() != null) {
+                try {
+                    Long usuarioId = Long.parseLong(claims.getSubject());
+                    String rol = claims.get("rol", String.class);
+                    String email = claims.get("email", String.class);
 
-                var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + rol));
-                var authentication = new UsernamePasswordAuthenticationToken(usuarioId, null, authorities);
-                authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                    var authorities = List.of(new SimpleGrantedAuthority("ROLE_" + rol));
+                    var authentication = new UsernamePasswordAuthenticationToken(usuarioId, null, authorities);
+                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
-                SecurityContextHolder.getContext().setAuthentication(authentication);
+                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                } catch (NumberFormatException ex) {
+                    SecurityContextHolder.clearContext();
+                }
+            } else {
+                SecurityContextHolder.clearContext();
             }
         }
 

@@ -57,11 +57,19 @@ public class JwtService {
         return extraerClaims(token).get("rol", String.class);
     }
 
-    public boolean esTokenValido(String token) {
+    public Claims obtenerClaimsSiValido(String token) {
         try {
-            return extraerClaims(token).getExpiration().after(new Date());
+            Claims claims = extraerClaims(token);
+            if (claims.getExpiration() == null || !claims.getExpiration().after(new Date())) {
+                return null;
+            }
+            return claims;
         } catch (Exception e) {
-            return false;
+            return null;
         }
+    }
+
+    public boolean esTokenValido(String token) {
+        return obtenerClaimsSiValido(token) != null;
     }
 }
