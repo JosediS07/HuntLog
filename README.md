@@ -198,3 +198,4 @@ El `Dockerfile` multi-stage construye el backend en un solo contenedor:
 - Sin credenciales en el repositorio (ni en CI)
 - Códigos de error HTTP correctos: `401` credenciales/token inválido, `403` cuenta inactiva, `404` recurso inexistente o de otro usuario, `409` email duplicado, `422` regla de negocio, `502` fallo/timeout del servicio externo
 - Anti-IDOR: cada usuario solo ve y modifica sus propias empresas, candidaturas y entrevistas
+- Rate limiting en `/login`: máx. 10 intentos por minuto por IP (configurable con `huntlog.rate-limit.max-intentos` y `huntlog.rate-limit.ventana-segundos`)

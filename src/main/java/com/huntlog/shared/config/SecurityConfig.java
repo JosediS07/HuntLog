@@ -19,10 +19,13 @@ public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
     private final RestAuthenticationEntryPoint authenticationEntryPoint;
+    private final RateLimitLoginFilter rateLimitLoginFilter;
 
-    public SecurityConfig(JwtFilter jwtFilter, RestAuthenticationEntryPoint authenticationEntryPoint) {
+    public SecurityConfig(JwtFilter jwtFilter, RestAuthenticationEntryPoint authenticationEntryPoint,
+                          RateLimitLoginFilter rateLimitLoginFilter) {
         this.jwtFilter = jwtFilter;
         this.authenticationEntryPoint = authenticationEntryPoint;
+        this.rateLimitLoginFilter = rateLimitLoginFilter;
     }
 
     @Bean
@@ -39,6 +42,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").authenticated()
                 .anyRequest().denyAll()
             )
+            .addFilterBefore(rateLimitLoginFilter, UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
