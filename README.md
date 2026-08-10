@@ -138,7 +138,7 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 | PATCH | `/{id}/estado` | Cambiar estado (validado) | Autenticado |
 | DELETE | `/{id}` | Eliminar candidatura | Autenticado |
 
-Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`
+Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`, `salarioDesde`, `salarioHasta`
 
 ### Entrevistas (`/api/candidaturas/{id}/entrevistas`)
 
