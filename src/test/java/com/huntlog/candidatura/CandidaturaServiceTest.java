@@ -8,6 +8,7 @@ import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import com.huntlog.empresa.Empresa;
 import com.huntlog.empresa.EmpresaRepository;
 import com.huntlog.shared.exception.EntidadNoEncontradaException;
+import com.huntlog.shared.exception.ReglaDeNegocioException;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -16,6 +17,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.math.BigDecimal;
@@ -125,8 +127,33 @@ class CandidaturaServiceTest {
         when(empresaRepository.findById(1L)).thenReturn(Optional.of(empresa));
 
         assertThrows(EntidadNoEncontradaException.class,
-                () -> candidaturaService.listar(1L, null, 1L, null, null, PageRequest.of(0, 20)));
+                () -> candidaturaService.listar(1L, null, 1L, null, null, null, null, PageRequest.of(0, 20)));
         verify(candidaturaRepository, never()).findAll(any(Specification.class), any(PageRequest.class));
+    }
+
+    @Test
+    void listar_salarioDesdeMayorQueSalarioHasta_lanzaExcepcion() {
+        assertThrows(ReglaDeNegocioException.class,
+                () -> candidaturaService.listar(1L, null, null, null, null,
+                        BigDecimal.valueOf(60000), BigDecimal.valueOf(40000), PageRequest.of(0, 20)));
+        verify(candidaturaRepository, never()).findAll(any(Specification.class), any(PageRequest.class));
+    }
+
+    @Test
+    void listar_sinFiltrosSalariales_noLanzaExcepcion() {
+        Empresa empresa = crearEmpresa(1L, "Acme");
+        when(empresaRepository.findAllById(List.of(1L))).thenReturn(List.of(empresa));
+
+        Candidatura candidatura = new Candidatura(1L, 1L, "Ingeniero", null,
+                BigDecimal.valueOf(30000), BigDecimal.valueOf(50000), "EUR", null, null);
+        candidatura.setId(1L);
+        when(candidaturaRepository.findAll(any(Specification.class), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(candidatura)));
+
+        Page<CandidaturaResponse> result = candidaturaService.listar(1L, null, null, null, null,
+                null, null, PageRequest.of(0, 20));
+
+        assertEquals(1, result.getTotalElements());
     }
 
     @Test
