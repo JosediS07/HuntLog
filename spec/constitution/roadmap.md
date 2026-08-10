@@ -13,6 +13,7 @@
 9. **Endurecimiento de seguridad** — 401 real sin token, denyAll, claims JWT validados
 10. **Rate limiting en login** — Máximo de intentos por IP configurable
 11. **Tests de integración** — Cobertura del flujo completo con H2
+12. **Filtro por rango salarial** — Solapamiento en candidaturas (desde/hasta)
 
 ## En progreso
 
@@ -20,7 +21,7 @@ _(Ninguno aún)_
 
 ## Pendiente
 
-- Filtro por rango salarial en candidaturas
+_(Ninguno aún)_
 
 ## Backlog
 
