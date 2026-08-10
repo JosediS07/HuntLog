@@ -12,6 +12,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @RestController
@@ -31,10 +32,13 @@ public class CandidaturaController {
             @RequestParam(required = false) Long empresaId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaDesde,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime fechaHasta,
+            @RequestParam(required = false) BigDecimal salarioDesde,
+            @RequestParam(required = false) BigDecimal salarioHasta,
             @PageableDefault(size = 20) Pageable pageable) {
 
         Page<CandidaturaResponse> result = candidaturaService.listar(
-                usuarioId, estado, empresaId, fechaDesde, fechaHasta, pageable);
+                usuarioId, estado, empresaId, fechaDesde, fechaHasta,
+                salarioDesde, salarioHasta, pageable);
         return ResponseEntity.ok(result);
     }
 

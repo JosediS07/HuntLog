@@ -7,6 +7,7 @@ import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import com.huntlog.empresa.Empresa;
 import com.huntlog.empresa.EmpresaRepository;
 import com.huntlog.shared.exception.EntidadNoEncontradaException;
+import com.huntlog.shared.exception.ReglaDeNegocioException;
 import jakarta.persistence.criteria.Predicate;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -40,10 +41,12 @@ public class CandidaturaService {
     @Transactional(readOnly = true)
     public Page<CandidaturaResponse> listar(Long usuarioId, String estado, Long empresaId,
                                              LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                             BigDecimal salarioDesde, BigDecimal salarioHasta,
                                              Pageable pageable) {
         if (empresaId != null) {
             validarEmpresaDelUsuario(empresaId, usuarioId);
         }
+        validarRangoDeFiltroSalarial(salarioDesde, salarioHasta);
         Specification<Candidatura> spec = (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("usuarioId"), usuarioId));
@@ -58,6 +61,14 @@ public class CandidaturaService {
             }
             if (fechaHasta != null) {
                 predicates.add(cb.lessThanOrEqualTo(root.get("creado"), fechaHasta));
+            }
+            if (salarioDesde != null) {
+                predicates.add(cb.isNotNull(root.get("salarioMax")));
+                predicates.add(cb.greaterThanOrEqualTo(root.get("salarioMax"), salarioDesde));
+            }
+            if (salarioHasta != null) {
+                predicates.add(cb.isNotNull(root.get("salarioMin")));
+                predicates.add(cb.lessThanOrEqualTo(root.get("salarioMin"), salarioHasta));
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
@@ -150,6 +161,12 @@ public class CandidaturaService {
     private void validarRangoSalarial(BigDecimal salarioMin, BigDecimal salarioMax) {
         if (salarioMin != null && salarioMax != null && salarioMin.compareTo(salarioMax) > 0) {
             throw new IllegalArgumentException("El salario mínimo no puede ser mayor que el máximo");
+        }
+    }
+
+    private void validarRangoDeFiltroSalarial(BigDecimal salarioDesde, BigDecimal salarioHasta) {
+        if (salarioDesde != null && salarioHasta != null && salarioDesde.compareTo(salarioHasta) > 0) {
+            throw new ReglaDeNegocioException("El salario mínimo del filtro no puede ser mayor que el máximo");
         }
     }
 
