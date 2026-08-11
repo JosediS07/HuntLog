@@ -23,6 +23,10 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: 86400000
 
+admin:
+  email: ${ADMIN_EMAIL:}
+  password: ${ADMIN_PASSWORD:}
+
 adzuna:
   base-url: https://api.adzuna.com/v1/api/jobs
   app-id: ${ADZUNA_APP_ID:}
