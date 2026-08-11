@@ -14,6 +14,7 @@
 10. **Rate limiting en login** — Máximo de intentos por IP configurable
 11. **Tests de integración** — Cobertura del flujo completo con H2
 12. **Filtro por rango salarial** — Solapamiento en candidaturas (desde/hasta)
+13. **Dashboard admin** — Métricas globales con rol ADMIN
 
 ## En progreso
 
@@ -25,7 +26,6 @@ _(Ninguno aún)_
 
 ## Backlog
 
-- Dashboard admin con métricas globales
 - Exportar candidaturas a CSV/PDF
 - Notificaciones por email al cambiar estado
 - Refresh tokens

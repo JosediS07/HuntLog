@@ -43,11 +43,14 @@ docker compose up --build
 | `DB_PASSWORD` | Contraseña de PostgreSQL | Sí | — |
 | `JWT_SECRET` | Clave secreta para JWT (base64, 256 bits mínimo) | Sí | — |
 | `JWT_EXPIRATION` | Expiración del token en ms | No | `86400000` (24 h) |
-| `ADZUNA_APP_ID` | App ID de Adzuna API | Sí* | — |
-| `ADZUNA_APP_KEY` | App Key de Adzuna API | Sí* | — |
+| `ADMIN_EMAIL` | Email del usuario admin (seed automático al arrancar) | No* | — |
+| `ADMIN_PASSWORD` | Contraseña del usuario admin | No* | — |
+| `ADZUNA_APP_ID` | App ID de Adzuna API | Sí** | — |
+| `ADZUNA_APP_KEY` | App Key de Adzuna API | Sí** | — |
 | `ADZUNA_TIMEOUT_SECONDS` | Timeout de la llamada a Adzuna | No | `10` |
 
-> *Solo obligatorio para el módulo de búsqueda.
+> *Solo si se quiere el usuario admin: `ADMIN_EMAIL` y `ADMIN_PASSWORD` deben definirse juntos.
+> **Solo obligatorio para el módulo de búsqueda.
 
 ## Modelo de datos
 
@@ -161,6 +164,12 @@ Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`, `salarioDesde`, `sal
 |--------|------|-------------|--------|
 | GET | `/buscar?q=developer&pais=gb` | Buscar ofertas en Adzuna | Autenticado |
 
+### Admin (`/api/admin`)
+
+| Método | Ruta | Descripción | Acceso |
+|--------|------|-------------|--------|
+| GET | `/dashboard` | Métricas globales (usuarios, empresas, candidaturas, tasa respuesta) | ADMIN |
+
 ## Arquitectura
 
 **Modular Monolith** — Cada dominio es un módulo independiente:
@@ -168,6 +177,7 @@ Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`, `salarioDesde`, `sal
 ```
 com.huntlog/
 ├── auth/           ← JWT, login, registro
+├── admin/          ← Dashboard admin (métricas globales)
 ├── empresa/        ← CRUD empresas
 ├── candidatura/    ← CRUD candidaturas + máquina de estados
 ├── entrevista/     ← CRUD entrevistas
@@ -196,6 +206,6 @@ El `Dockerfile` multi-stage construye el backend en un solo contenedor:
 - JWT firmado con HMAC-SHA256; `JWT_SECRET` obligatorio con fail-fast al arrancar
 - Tokens con expiración configurable
 - Sin credenciales en el repositorio (ni en CI)
-- Códigos de error HTTP correctos: `401` credenciales/token inválido, `403` cuenta inactiva, `404` recurso inexistente o de otro usuario, `409` email duplicado, `422` regla de negocio, `502` fallo/timeout del servicio externo
+- Códigos de error HTTP correctos: `401` credenciales/token inválido, `403` cuenta inactiva o sin permisos de admin, `404` recurso inexistente o de otro usuario, `409` email duplicado, `422` regla de negocio, `502` fallo/timeout del servicio externo
 - Anti-IDOR: cada usuario solo ve y modifica sus propias empresas, candidaturas y entrevistas
 - Rate limiting en `/login`: máx. 10 intentos por minuto por IP (configurable con `huntlog.rate-limit.max-intentos` y `huntlog.rate-limit.ventana-segundos`)
