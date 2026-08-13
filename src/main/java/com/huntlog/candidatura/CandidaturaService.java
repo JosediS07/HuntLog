@@ -47,7 +47,37 @@ public class CandidaturaService {
             validarEmpresaDelUsuario(empresaId, usuarioId);
         }
         validarRangoDeFiltroSalarial(salarioDesde, salarioHasta);
-        Specification<Candidatura> spec = (root, query, cb) -> {
+        Page<Candidatura> pagina = candidaturaRepository.findAll(
+                construirEspecificacion(usuarioId, estado, empresaId, fechaDesde, fechaHasta,
+                        salarioDesde, salarioHasta),
+                pageable);
+        Map<Long, String> nombresEmpresas = cargarNombresEmpresas(
+                pagina.getContent().stream().map(Candidatura::getEmpresaId).toList());
+        return pagina.map(candidatura -> toResponse(candidatura, nombresEmpresas));
+    }
+
+    @Transactional(readOnly = true)
+    public List<CandidaturaResponse> listarParaExportacion(Long usuarioId, String estado, Long empresaId,
+                                                            LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                                            BigDecimal salarioDesde, BigDecimal salarioHasta) {
+        if (empresaId != null) {
+            validarEmpresaDelUsuario(empresaId, usuarioId);
+        }
+        validarRangoDeFiltroSalarial(salarioDesde, salarioHasta);
+        List<Candidatura> candidaturas = candidaturaRepository.findAll(
+                construirEspecificacion(usuarioId, estado, empresaId, fechaDesde, fechaHasta,
+                        salarioDesde, salarioHasta));
+        Map<Long, String> nombresEmpresas = cargarNombresEmpresas(
+                candidaturas.stream().map(Candidatura::getEmpresaId).toList());
+        return candidaturas.stream()
+                .map(candidatura -> toResponse(candidatura, nombresEmpresas))
+                .toList();
+    }
+
+    private Specification<Candidatura> construirEspecificacion(Long usuarioId, String estado, Long empresaId,
+                                                                LocalDateTime fechaDesde, LocalDateTime fechaHasta,
+                                                                BigDecimal salarioDesde, BigDecimal salarioHasta) {
+        return (root, query, cb) -> {
             List<Predicate> predicates = new ArrayList<>();
             predicates.add(cb.equal(root.get("usuarioId"), usuarioId));
             if (estado != null) {
@@ -72,10 +102,6 @@ public class CandidaturaService {
             }
             return cb.and(predicates.toArray(new Predicate[0]));
         };
-        Page<Candidatura> pagina = candidaturaRepository.findAll(spec, pageable);
-        Map<Long, String> nombresEmpresas = cargarNombresEmpresas(
-                pagina.getContent().stream().map(Candidatura::getEmpresaId).toList());
-        return pagina.map(candidatura -> toResponse(candidatura, nombresEmpresas));
     }
 
     @Transactional(readOnly = true)
