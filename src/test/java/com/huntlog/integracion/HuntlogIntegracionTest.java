@@ -5,15 +5,19 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import java.nio.charset.StandardCharsets;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -157,6 +161,56 @@ class HuntlogIntegracionTest {
                         .param("salarioDesde", "60000")
                         .param("salarioHasta", "40000"))
                 .andExpect(status().isUnprocessableEntity());
+    }
+
+    @Test
+    void exportarCsvRespetaFiltrosDeSalario() throws Exception {
+        String token = registrarYObtenerToken(emailUnico());
+        long empresaId = crearEmpresa(token, "Empresa export");
+
+        crearCandidatura(token, empresaId, "Junior export", 25000, 35000);
+        crearCandidatura(token, empresaId, "Senior export", 45000, 65000);
+
+        String csv = mockMvc.perform(get("/api/candidaturas/exportar")
+                        .header("Authorization", "Bearer " + token)
+                        .param("formato", "csv")
+                        .param("salarioDesde", "40000"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        org.hamcrest.Matchers.containsString("candidaturas.csv")))
+                .andReturn().getResponse().getContentAsString();
+
+        assertThat(csv).contains("Senior export").doesNotContain("Junior export");
+        assertThat(csv).startsWith("Puesto,Empresa");
+    }
+
+    @Test
+    void exportarPdfDevuelveDocumento() throws Exception {
+        String token = registrarYObtenerToken(emailUnico());
+        long empresaId = crearEmpresa(token, "Empresa pdf");
+
+        crearCandidatura(token, empresaId, "Candidatura pdf", null, null);
+
+        byte[] pdf = mockMvc.perform(get("/api/candidaturas/exportar")
+                        .header("Authorization", "Bearer " + token)
+                        .param("formato", "pdf"))
+                .andExpect(status().isOk())
+                .andExpect(header().string(HttpHeaders.CONTENT_DISPOSITION,
+                        org.hamcrest.Matchers.containsString("candidaturas.pdf")))
+                .andExpect(content().contentType(MediaType.APPLICATION_PDF))
+                .andReturn().getResponse().getContentAsByteArray();
+
+        assertThat(new String(pdf, 0, 5, StandardCharsets.ISO_8859_1)).isEqualTo("%PDF-");
+    }
+
+    @Test
+    void exportarConFormatoInvalidoDevuelve400() throws Exception {
+        String token = registrarYObtenerToken(emailUnico());
+
+        mockMvc.perform(get("/api/candidaturas/exportar")
+                        .header("Authorization", "Bearer " + token)
+                        .param("formato", "xlsx"))
+                .andExpect(status().isBadRequest());
     }
 
     private long crearEmpresa(String token, String nombre) throws Exception {
