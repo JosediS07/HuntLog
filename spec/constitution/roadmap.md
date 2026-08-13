@@ -15,6 +15,7 @@
 11. **Tests de integración** — Cobertura del flujo completo con H2
 12. **Filtro por rango salarial** — Solapamiento en candidaturas (desde/hasta)
 13. **Dashboard admin** — Métricas globales con rol ADMIN
+14. **Exportar candidaturas** — Descarga a CSV y PDF con filtros
 
 ## En progreso
 
@@ -26,7 +27,6 @@ _(Ninguno aún)_
 
 ## Backlog
 
-- Exportar candidaturas a CSV/PDF
 - Notificaciones por email al cambiar estado
 - Refresh tokens
 

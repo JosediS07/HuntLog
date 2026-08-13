@@ -135,13 +135,14 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 | Método | Ruta | Descripción | Acceso |
 |--------|------|-------------|--------|
 | GET | `/` | Listar candidaturas (paginado, filtros) | Autenticado |
+| GET | `/exportar?formato=csv` | Exportar candidaturas a CSV/PDF | Autenticado |
 | GET | `/{id}` | Obtener candidatura | Autenticado |
 | POST | `/` | Crear candidatura | Autenticado |
 | PUT | `/{id}` | Actualizar candidatura | Autenticado |
 | PATCH | `/{id}/estado` | Cambiar estado (validado) | Autenticado |
 | DELETE | `/{id}` | Eliminar candidatura | Autenticado |
 
-Filtros: `estado`, `empresaId`, `fechaDesde`, `fechaHasta`, `salarioDesde`, `salarioHasta`
+Filtros (listado y exportación): `estado`, `empresaId`, `fechaDesde`, `fechaHasta`, `salarioDesde`, `salarioHasta`
 
 ### Entrevistas (`/api/candidaturas/{id}/entrevistas`)
 
