@@ -16,6 +16,7 @@
 12. **Filtro por rango salarial** — Solapamiento en candidaturas (desde/hasta)
 13. **Dashboard admin** — Métricas globales con rol ADMIN
 14. **Exportar candidaturas** — Descarga a CSV y PDF con filtros
+15. **Refresh tokens** — Access token de vida corta + refresh token con hash, rotación y revocación; endpoints `POST /api/v1/auth/refresh` y `/logout`
 
 ## En progreso
 
@@ -28,7 +29,6 @@ _(Ninguno aún)_
 ## Backlog
 
 - Notificaciones por email al cambiar estado
-- Refresh tokens
 
 ## Regla
 

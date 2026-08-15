@@ -42,7 +42,8 @@ docker compose up --build
 | `DB_USER` | Usuario de PostgreSQL | Sí | — |
 | `DB_PASSWORD` | Contraseña de PostgreSQL | Sí | — |
 | `JWT_SECRET` | Clave secreta para JWT (base64, 256 bits mínimo) | Sí | — |
-| `JWT_EXPIRATION` | Expiración del token en ms | No | `86400000` (24 h) |
+| `JWT_EXPIRATION` | Expiración del access token en ms | No | `900000` (15 min) |
+| `JWT_REFRESH_EXPIRATION` | Expiración del refresh token en ms | No | `2592000000` (30 días) |
 | `ADMIN_EMAIL` | Email del usuario admin (seed automático al arrancar) | No* | — |
 | `ADMIN_PASSWORD` | Contraseña del usuario admin | No* | — |
 | `ADZUNA_APP_ID` | App ID de Adzuna API | Sí** | — |
@@ -110,7 +111,7 @@ DRAFT → APPLIED → PHONE_SCREEN → TECHNICAL_INTERVIEW → FINAL_INTERVIEW �
 
 ## API
 
-Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se envía como `Authorization: Bearer <token>`.
+Todas las rutas requieren autenticación excepto `register`, `login`, `refresh` y `logout`. El access token se envía como `Authorization: Bearer <accessToken>`.
 
 ### Autenticación (`/api/v1/auth`)
 
@@ -118,7 +119,11 @@ Todas las rutas requieren autenticación excepto `register` y `login`. El JWT se
 |--------|------|-------------|--------|
 | POST | `/register` | Registrar usuario | Público |
 | POST | `/login` | Iniciar sesión | Público |
+| POST | `/refresh` | Rotar refresh token y obtener un par nuevo | Público* |
+| POST | `/logout` | Revocar el refresh token | Público* |
 | GET | `/me` | Obtener perfil | Autenticado |
+
+> *`refresh` y `logout` son públicos porque usan el refresh token como credencial; así se permite cerrar sesión aunque el access token haya expirado. La respuesta de `register`/`login`/`refresh` incluye `accessToken`, `refreshToken` y `expiraEn`. Cada uso de `refresh` revoca el token anterior; reutilizar uno ya revocado invalida todos los refresh del usuario.
 
 ### Empresas (`/api/empresas`)
 
@@ -205,6 +210,7 @@ El `Dockerfile` multi-stage construye el backend en un solo contenedor:
 
 - Contraseñas hasheadas con BCrypt
 - JWT firmado con HMAC-SHA256; `JWT_SECRET` obligatorio con fail-fast al arrancar
+- Access token stateless de vida corta + refresh token persistido con hash SHA-256 y rotación con detección de reuso (revoca todos los tokens del usuario si se reutiliza uno revocado)
 - Tokens con expiración configurable
 - Sin credenciales en el repositorio (ni en CI)
 - Códigos de error HTTP correctos: `401` credenciales/token inválido, `403` cuenta inactiva o sin permisos de admin, `404` recurso inexistente o de otro usuario, `409` email duplicado, `422` regla de negocio, `502` fallo/timeout del servicio externo

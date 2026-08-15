@@ -1,5 +1,5 @@
 # 011 · Refresh tokens
-**Estado:** propuesta
+**Estado:** implementado
 
 ## Qué hace
 
