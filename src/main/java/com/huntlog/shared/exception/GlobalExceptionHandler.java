@@ -2,6 +2,7 @@ package com.huntlog.shared.exception;
 
 import com.huntlog.auth.exception.CredencialesInvalidasException;
 import com.huntlog.auth.exception.EmailYaRegistradoException;
+import com.huntlog.auth.exception.RefreshTokenInvalidoException;
 import com.huntlog.candidatura.exception.CandidaturaNoEncontradaException;
 import com.huntlog.candidatura.exception.TransicionInvalidaException;
 import com.huntlog.entrevista.exception.EntrevistaNoEncontradaException;
@@ -63,6 +64,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> manejarAutenticacion(Exception ex) {
         return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(new ErrorResponse("UNAUTHORIZED", "Credenciales inválidas", HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now()));
+    }
+
+    @ExceptionHandler(RefreshTokenInvalidoException.class)
+    public ResponseEntity<ErrorResponse> manejarRefreshTokenInvalido(RefreshTokenInvalidoException ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                .body(new ErrorResponse("UNAUTHORIZED", ex.getMessage(), HttpStatus.UNAUTHORIZED.value(), LocalDateTime.now()));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

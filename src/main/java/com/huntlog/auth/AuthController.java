@@ -2,7 +2,9 @@ package com.huntlog.auth;
 
 import com.huntlog.auth.dto.AuthResponse;
 import com.huntlog.auth.dto.LoginRequest;
+import com.huntlog.auth.dto.RefreshRequest;
 import com.huntlog.auth.dto.RegisterRequest;
+import com.huntlog.auth.dto.UsuarioResponse;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -28,9 +30,20 @@ public class AuthController {
         return ResponseEntity.ok(authService.login(request));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<AuthResponse> refrescar(@Valid @RequestBody RefreshRequest request) {
+        return ResponseEntity.ok(authService.refrescar(request));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<Void> cerrarSesion(@Valid @RequestBody RefreshRequest request) {
+        authService.cerrarSesion(request);
+        return ResponseEntity.noContent().build();
+    }
+
     @GetMapping("/me")
-    public ResponseEntity<AuthResponse> obtenerPerfil(@AuthenticationPrincipal Long usuarioId) {
+    public ResponseEntity<UsuarioResponse> obtenerPerfil(@AuthenticationPrincipal Long usuarioId) {
         User user = authService.obtenerUsuarioPorId(usuarioId);
-        return ResponseEntity.ok(new AuthResponse(user.getId(), "", user.getNombre(), user.getEmail(), user.getRol()));
+        return ResponseEntity.ok(new UsuarioResponse(user.getId(), user.getNombre(), user.getEmail(), user.getRol()));
     }
 }

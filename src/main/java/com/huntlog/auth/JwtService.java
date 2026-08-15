@@ -14,27 +14,35 @@ import java.util.Date;
 public class JwtService {
 
     private final SecretKey key;
-    private final long expiration;
+    private final long accessExpiration;
 
     public JwtService(
             @Value("${jwt.secret}") String secret,
-            @Value("${jwt.expiration}") long expiration) {
+            @Value("${jwt.access-expiration}") long accessExpiration) {
         if (secret == null || secret.isBlank()) {
             throw new IllegalStateException("JWT_SECRET no está configurado. Defina la variable de entorno JWT_SECRET con una clave base64 de 256 bits.");
         }
         this.key = Keys.hmacShaKeyFor(Base64.getDecoder().decode(secret));
-        this.expiration = expiration;
+        this.accessExpiration = accessExpiration;
     }
 
     public String generarToken(User user) {
+        return generarToken(user, accessExpiration);
+    }
+
+    public String generarToken(User user, long expiracionMs) {
         return Jwts.builder()
                 .subject(user.getId().toString())
                 .claim("email", user.getEmail())
                 .claim("rol", user.getRol())
                 .issuedAt(new Date())
-                .expiration(new Date(System.currentTimeMillis() + expiration))
+                .expiration(new Date(System.currentTimeMillis() + expiracionMs))
                 .signWith(key)
                 .compact();
+    }
+
+    public long expiraEn(String token) {
+        return extraerClaims(token).getExpiration().getTime();
     }
 
     public Claims extraerClaims(String token) {

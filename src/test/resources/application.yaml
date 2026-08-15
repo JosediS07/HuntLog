@@ -15,7 +15,8 @@ spring:
 
 jwt:
   secret: dGVzdC1zZWNyZXQtaHVudGxvZy1pbnRlZ3JhdGlvbi10ZXN0cy0yNTZiaXRzLTAxMjM0NTY3ODk=
-  expiration: 86400000
+  access-expiration: 900000
+  refresh-expiration: 2592000000
 
 adzuna:
   base-url: https://api.adzuna.com/v1/api/jobs

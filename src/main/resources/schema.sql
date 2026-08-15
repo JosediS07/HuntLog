@@ -8,6 +8,15 @@ CREATE TABLE IF NOT EXISTS users (
     creado          TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+    id              BIGSERIAL PRIMARY KEY,
+    usuario_id      BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    token_hash      VARCHAR(64) NOT NULL UNIQUE,
+    expira_en       TIMESTAMP NOT NULL,
+    revocado_en     TIMESTAMP,
+    creado_en       TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS companies (
     id              BIGSERIAL PRIMARY KEY,
     nombre          VARCHAR(150) NOT NULL,
@@ -64,3 +73,4 @@ CREATE INDEX idx_candidaturas_estado ON candidaturas(estado);
 CREATE INDEX idx_entrevistas_candidatura ON entrevistas(candidatura_id);
 CREATE INDEX idx_historial_candidatura ON historial_estado(candidatura_id);
 CREATE INDEX idx_companies_usuario ON companies(usuario_id);
+CREATE INDEX idx_refresh_tokens_usuario ON refresh_tokens(usuario_id);
