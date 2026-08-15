@@ -70,7 +70,7 @@ class AdminIntegracionTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String token = objectMapper.readTree(resultadoRegistro.getResponse().getContentAsString())
-                .get("token").asText();
+                .get("accessToken").asText();
 
         mockMvc.perform(get("/api/admin/dashboard")
                         .header("Authorization", "Bearer " + token))
@@ -94,7 +94,7 @@ class AdminIntegracionTest {
                 .andExpect(status().isOk())
                 .andReturn();
         String token = objectMapper.readTree(resultado.getResponse().getContentAsString())
-                .get("token").asText();
+                .get("accessToken").asText();
         assertThat(token).isNotEmpty();
         return token;
     }

@@ -85,4 +85,34 @@ class JwtServiceTest {
         assertNotNull(jwtService.obtenerClaimsSiValido(token));
         assertNull(jwtService.obtenerClaimsSiValido(token).getSubject());
     }
+
+    @Test
+    void generarToken_conExpiracionPersonalizada_respetaExpiracion() {
+        JwtService jwtService = new JwtService(SECRET, EXPIRATION);
+
+        User user = new User("Juan", "juan@mail.com", "pass", "USER");
+        user.setId(1L);
+
+        String token = jwtService.generarToken(user, 5000);
+
+        long expiraEn = jwtService.expiraEn(token);
+        long ahora = System.currentTimeMillis();
+        assertTrue(expiraEn > ahora);
+        assertTrue(expiraEn <= ahora + 6000);
+    }
+
+    @Test
+    void expiraEn_devuelveEpochMsDeExpiracion() {
+        JwtService jwtService = new JwtService(SECRET, EXPIRATION);
+
+        User user = new User("Juan", "juan@mail.com", "pass", "USER");
+        user.setId(1L);
+
+        String token = jwtService.generarToken(user);
+
+        long expiraEn = jwtService.expiraEn(token);
+        long ahora = System.currentTimeMillis();
+        assertTrue(expiraEn > ahora);
+        assertTrue(expiraEn <= ahora + EXPIRATION + 1000);
+    }
 }

@@ -47,7 +47,7 @@ class HuntlogIntegracionTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(REGISTRO.formatted(email)))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty());
+                .andExpect(jsonPath("$.accessToken").isNotEmpty());
 
         String jsonLogin = """
                 {"email":"%s","password":"password123"}
@@ -56,7 +56,7 @@ class HuntlogIntegracionTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonLogin))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isNotEmpty());
+                .andExpect(jsonPath("$.accessToken").isNotEmpty());
     }
 
     @Test
@@ -213,6 +213,77 @@ class HuntlogIntegracionTest {
                 .andExpect(status().isBadRequest());
     }
 
+    @Test
+    void refrescarToken_devuelveParNuevoYRevocaElAnterior() throws Exception {
+        String email = emailUnico();
+        MvcResult registro = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REGISTRO.formatted(email)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String refreshToken = objectMapper.readTree(registro.getResponse().getContentAsString())
+                .get("refreshToken").asText();
+
+        MvcResult refrescado = mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"%s"}
+                                """.formatted(refreshToken)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").isNotEmpty())
+                .andExpect(jsonPath("$.refreshToken").isNotEmpty())
+                .andReturn();
+
+        String refreshNuevo = objectMapper.readTree(refrescado.getResponse().getContentAsString())
+                .get("refreshToken").asText();
+        assertThat(refreshNuevo).isNotEqualTo(refreshToken);
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"%s"}
+                                """.formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void logoutRevocaElRefreshTokenYSuReusoDevuelve401() throws Exception {
+        String email = emailUnico();
+        MvcResult registro = mockMvc.perform(post("/api/v1/auth/register")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(REGISTRO.formatted(email)))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        String refreshToken = objectMapper.readTree(registro.getResponse().getContentAsString())
+                .get("refreshToken").asText();
+
+        mockMvc.perform(post("/api/v1/auth/logout")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"%s"}
+                                """.formatted(refreshToken)))
+                .andExpect(status().isNoContent());
+
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"%s"}
+                                """.formatted(refreshToken)))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
+    void refreshConTokenInexistenteDevuelve401() throws Exception {
+        mockMvc.perform(post("/api/v1/auth/refresh")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"refreshToken":"token-que-no-existe"}
+                                """))
+                .andExpect(status().isUnauthorized());
+    }
+
     private long crearEmpresa(String token, String nombre) throws Exception {
         MvcResult resultado = mockMvc.perform(post("/api/empresas")
                         .header("Authorization", "Bearer " + token)
@@ -244,7 +315,7 @@ class HuntlogIntegracionTest {
                         .content(REGISTRO.formatted(email)))
                 .andExpect(status().isOk())
                 .andReturn();
-        return objectMapper.readTree(resultado.getResponse().getContentAsString()).get("token").asText();
+        return objectMapper.readTree(resultado.getResponse().getContentAsString()).get("accessToken").asText();
     }
 
     private String emailUnico() {
